@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ENT</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: white;
+    }
+    header, nav, main, footer {
+      padding: 20px;
+    }
+    header {
+      background-color: rgba(0,0,0,0.7);
+      text-align: center;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    nav a {
+      color: cyan;
+      text-decoration: none;
+    }
+    .login-form, .dashboard {
+      max-width: 400px;
+      margin: 50px auto;
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 10px;
+      backdrop-filter: blur(5px);
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ENT Futuriste</h1>
+    <p>Connexion sécurisée pour Élèves, Enseignants et Direction</p>
+  </header>
+  
+  <div class="login-form" id="login">
+    <h2>Connexion</h2>
+    <select id="role">
+      <option value="eleve">Élève</option>
+      <option value="enseignant">Enseignant</option>
+      <option value="direction">Direction</option>
+    </select>
+    <input type="text" id="username" placeholder="Identifiant">
+    <input type="password" id="password" placeholder="Mot de passe">
+    <button onclick="login()">Se connecter</button>
+  </div>
+
+  <div class="dashboard hidden" id="dashboard">
+    <h2 id="welcome"></h2>
+    <nav>
+      <a href="#" onclick="showSection('actualites')">Actualités</a>
+      <a href="#" onclick="showSection('messagerie')">Messagerie</a>
+      <a href="#" onclick="showSection('fichiers')">Fichiers</a>
+      <a href="#" onclick="showSection('ressources')">Ressources</a>
+      <a href="#" onclick="goToPronote()">Pronote</a>
+      <a href="#" onclick="showSection('admin')">Administration</a>
+    </nav>
+
+    <section id="actualites" class="hidden">
+      <h3>Actualités</h3>
+      <div id="actualites-content"></div>
+      <textarea id="new-actu" placeholder="Nouvelle actu..."></textarea>
+      <button onclick="ajouterActu()">Ajouter</button>
+    </section>
+
+    <section id="messagerie" class="hidden">
+      <h3>Messagerie</h3>
+      <textarea placeholder="Écrire un message..."></textarea>
+    </section>
+
+    <section id="fichiers" class="hidden">
+      <h3>Fichiers Personnels</h3>
+      <input type="file">
+    </section>
+
+    <section id="ressources" class="hidden">
+      <h3>Ressources Enseignants</h3>
+      <input type="file">
+    </section>
+
+    <section id="admin" class="hidden">
+      <h3>Gestion des Comptes</h3>
+      <input type="text" id="new-user" placeholder="Nouvel identifiant">
+      <input type="password" id="new-pass" placeholder="Mot de passe">
+      <select id="new-role">
+        <option value="eleve">Élève</option>
+        <option value="enseignant">Enseignant</option>
+        <option value="direction">Direction</option>
+      </select>
+      <button onclick="creerCompte()">Créer un compte</button>
+      <p id="creation-result"></p>
+    </section>
+  </div>
+
+  <script>
+    const utilisateurs = [
+      { identifiant: 'JROBERT', motDePasse: 'Jrobert176', role: 'direction' }
+    ];
+
+    let utilisateurActuel = null;
+
+    function login() {
+      const identifiant = document.getElementById('username').value;
+      const motDePasse = document.getElementById('password').value;
+      const role = document.getElementById('role').value;
+
+      const utilisateur = utilisateurs.find(u => u.identifiant === identifiant && u.motDePasse === motDePasse && u.role === role);
+
+      if (utilisateur) {
+        utilisateurActuel = utilisateur;
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        document.getElementById('welcome').textContent = `Bienvenue ${utilisateur.identifiant} (${utilisateur.role})`;
+
+        if (utilisateur.role !== 'direction') {
+          document.getElementById('admin').classList.add('hidden');
+        }
+        if (utilisateur.role === 'eleve') {
+          document.getElementById('ressources').classList.add('hidden');
+        }
+        if (utilisateur.role === 'enseignant') {
+          document.getElementById('fichiers').classList.add('hidden');
+        }
+      } else {
+        alert("Identifiants incorrects");
+      }
+    }
+
+    function showSection(id) {
+      document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function goToPronote() {
+      window.open("https://0694174a.ac-jeanmoulin.fr/", '_blank');
+    }
+
+    function creerCompte() {
+      const id = document.getElementById('new-user').value;
+      const mdp = document.getElementById('new-pass').value;
+      const role = document.getElementById('new-role').value;
+
+      if (utilisateurActuel.role !== 'direction') return;
+
+      utilisateurs.push({ identifiant: id, motDePasse: mdp, role });
+      document.getElementById('creation-result').textContent = `Compte ${id} créé avec succès !`;
+    }
+
+    function ajouterActu() {
+      const txt = document.getElementById('new-actu').value;
+      if (utilisateurActuel.role === 'enseignant' || utilisateurActuel.role === 'direction') {
+        const actuContainer = document.getElementById('actualites-content');
+        const div = document.createElement('div');
+        div.textContent = txt;
+        actuContainer.appendChild(div);
+        document.getElementById('new-actu').value = "";
+      }
+    }
+  </script>
+</body>
+</html>
